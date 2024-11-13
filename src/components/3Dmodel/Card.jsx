@@ -41,7 +41,7 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
   const [fontS, setFontS] = useState(1);
   const [xlen, setXlen] = useState(-3);
   const [rotate , setRotate] = useState(false);
-
+ 
   useEffect(() => {
     const handleResize = () => {
         if(window.innerWidth < 300){
@@ -50,7 +50,6 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
         else{
             setFontS(2.5);
             setXlen(0);
-            console.log(fontS , xlen);
         }
     }
     window.addEventListener('resize', handleResize)
@@ -111,7 +110,6 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
     curRotation.multiply(increaseRotation);
     card.current.setNextKinematicRotation(curRotation);
     }
-    console.log(rotate , dragged , hovered);
     
   })
 
@@ -128,7 +126,7 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
         <RigidBody position={[1.5, 0, 0]} rotation={[0, Math.PI / 2,0]} ref={j3} {...segmentProps}>
           <BallCollider args={[0.1]} />
         </RigidBody>
-        <RigidBody position={[2, 0, 0]} ref={card} {...segmentProps} type={dragged || hovered ? 'kinematicPosition' : rotate ? 'kinematicPosition' : 'dynamic'}>
+        <RigidBody position={[2, 0, 0]} ref={card} {...segmentProps} type={dragged ? 'kinematicPosition' : rotate ? 'kinematicPosition' : 'dynamic'}>
           <CuboidCollider args={[0.8, 1.125, 0.01]} />
           <group
             scale={2.25}
@@ -150,7 +148,7 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
         <meshLineMaterial color="white" depthTest={false} resolution={[width, height]} useMap map={texture} repeat={[-3, 1]} lineWidth={1} />
       </mesh>
       <Text 
-        fontSize={2.7} 
+        fontSize={2 * ScaleFactor} 
         color="white" 
         position={[0, 0, -1]}
         font={fonts}
