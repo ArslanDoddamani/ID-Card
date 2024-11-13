@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { useEffect, useRef, useState } from 'react'
 import { Canvas, extend, useThree, useFrame } from '@react-three/fiber'
 import { useGLTF, useTexture, Environment, Lightformer, Text } from '@react-three/drei'
-import { BallCollider, CuboidCollider, Physics, RigidBody, useRopeJoint, useSphericalJoint } from '@react-three/rapier'
+import { BallCollider, CuboidCollider, Physics, quat, RigidBody, useRopeJoint, useSphericalJoint } from '@react-three/rapier'
 import { MeshLineGeometry, MeshLineMaterial } from 'meshline'
 import fonts from '/fonts/HelveticaNeueBold.woff'
 
@@ -40,6 +40,7 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
   const [hovered, hover] = useState(false)
   const [fontS, setFontS] = useState(1);
   const [xlen, setXlen] = useState(-3);
+  const [rotate , setRotate] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -56,10 +57,19 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
     return () => window.removeEventListener('resize', handleResize)
   }, [fontS, xlen])
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!dragged && !hovered) {
+        setRotate((prevRotate) => !prevRotate);
+      }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [dragged, hovered]);
+
   useRopeJoint(fixed, j1, [[0, 0, 0], [0, 0, 0], 1]) // prettier-ignore
   useRopeJoint(j1, j2, [[0, 0, 0], [0, 0, 0], 1]) // prettier-ignore
   useRopeJoint(j2, j3, [[0, 0, 0], [0, 0, 0], 1]) // prettier-ignore
-  useSphericalJoint(j3, card, [[0, 0, 0], [0, 1.45, 0]]) // prettier-ignore
+  useSphericalJoint(j3, card, [[0, 0, 0], [0, 1.45, 0],]) // prettier-ignore
 
   useEffect(() => {
     if (hovered) {
@@ -93,19 +103,17 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
       ang.copy(card.current.angvel())
       rot.copy(card.current.rotation())
       card.current.setAngvel({ x: ang.x, y: ang.y - rot.y * 0.25, z: ang.z })
-
-      // Ensure the card reference is valid before applying rotation
-      if (card.current) {
-        // Rotate the model continuously around the y-axis
-        card.current.rotation.y += delta * 0.5; // Adjust the speed of rotation by changing 0.5
-      }
+      
     }
+    if (rotate && !dragged && !hovered && card.current) {
+      const curRotation = quat(card.current.rotation());
+    const increaseRotation = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), delta * 2.465);
+    curRotation.multiply(increaseRotation);
+    card.current.setNextKinematicRotation(curRotation);
+    }
+    console.log(rotate , dragged , hovered);
+    
   })
-
-  
-
-  curve.curveType = 'chordal'
-  texture.wrapS = texture.wrapT = THREE.RepeatWrapping
 
   return (
     <>
@@ -117,17 +125,17 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
         <RigidBody position={[1, 0, 0]} ref={j2} {...segmentProps}>
           <BallCollider args={[0.1]} />
         </RigidBody>
-        <RigidBody position={[1.5, 0, 0]} ref={j3} {...segmentProps}>
+        <RigidBody position={[1.5, 0, 0]} rotation={[0, Math.PI / 2,0]} ref={j3} {...segmentProps}>
           <BallCollider args={[0.1]} />
         </RigidBody>
-        <RigidBody position={[2, 0, 0]} ref={card} {...segmentProps} type={dragged ? 'kinematicPosition' : 'dynamic'}>
+        <RigidBody position={[2, 0, 0]} ref={card} {...segmentProps} type={dragged || hovered ? 'kinematicPosition' : rotate ? 'kinematicPosition' : 'dynamic'}>
           <CuboidCollider args={[0.8, 1.125, 0.01]} />
           <group
             scale={2.25}
             position={[0, -1.2, -0.05]}
             onPointerOver={() => hover(true)}
-            onPointerOut={() => hover(false)}
-            onPointerUp={(e) => (e.target.releasePointerCapture(e.pointerId), drag(false))}
+            onPointerOut={() => (hover(false))}
+            onPointerUp={(e) => (e.target.releasePointerCapture(e.pointerId), drag(false), setRotate(false))}
             onPointerDown={(e) => (e.target.setPointerCapture(e.pointerId), drag(new THREE.Vector3().copy(e.point).sub(vec.copy(card.current.translation()))))}>
             <mesh ref={card} geometry={nodes.card.geometry}>
               <meshPhysicalMaterial map={materials.base.map} map-anisotropy={16} clearcoat={1} clearcoatRoughness={0.15} roughness={0.3} metalness={0.5} />
@@ -142,9 +150,9 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
         <meshLineMaterial color="white" depthTest={false} resolution={[width, height]} useMap map={texture} repeat={[-3, 1]} lineWidth={1} />
       </mesh>
       <Text 
-        fontSize={2.7} // Adjust the font size as needed
-        color="white" // Set the text color
-        position={[0, 0, -1]} // Adjust the position to place it behind the model
+        fontSize={2.7} 
+        color="white" 
+        position={[0, 0, -1]}
         font={fonts}
       >
         BEC IEEE
