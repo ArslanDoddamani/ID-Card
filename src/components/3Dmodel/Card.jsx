@@ -41,6 +41,13 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
   const [fontS, setFontS] = useState(1);
   const [xlen, setXlen] = useState(-3);
   const [rotate , setRotate] = useState(false);
+  const { viewport } = useThree();
+
+  const responsiveRatio = viewport.width / 9;
+
+  const ScaleFactor = Math.max(0.6, Math.min(0.9 * responsiveRatio, 0.9));
+
+  const isMobile = window.innerWidth < 448;
 
   useEffect(() => {
     const handleResize = () => {
@@ -50,7 +57,6 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
         else{
             setFontS(2.5);
             setXlen(0);
-            console.log(fontS , xlen);
         }
     }
     window.addEventListener('resize', handleResize)
@@ -111,13 +117,12 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
     curRotation.multiply(increaseRotation);
     card.current.setNextKinematicRotation(curRotation);
     }
-    console.log(rotate , dragged , hovered);
     
   })
 
   return (
     <>
-      <group position={[0, 4, 0]}>
+      <group position={[0, 4, 0]} >
         <RigidBody ref={fixed} {...segmentProps} type="fixed" />
         <RigidBody position={[0.5, 0, 0]} ref={j1} {...segmentProps}>
           <BallCollider args={[0.1]} />
@@ -128,7 +133,7 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
         <RigidBody position={[1.5, 0, 0]} rotation={[0, Math.PI / 2,0]} ref={j3} {...segmentProps}>
           <BallCollider args={[0.1]} />
         </RigidBody>
-        <RigidBody position={[2, 0, 0]} ref={card} {...segmentProps} type={dragged || hovered ? 'kinematicPosition' : rotate ? 'kinematicPosition' : 'dynamic'}>
+        <RigidBody position={[2, 0, 0]} ref={card} {...segmentProps} type={dragged ? 'kinematicPosition' : rotate ? 'kinematicPosition' : 'dynamic'}>
           <CuboidCollider args={[0.8, 1.125, 0.01]} />
           <group
             scale={2.25}
@@ -149,14 +154,32 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
         <meshLineGeometry />
         <meshLineMaterial color="white" depthTest={false} resolution={[width, height]} useMap map={texture} repeat={[-3, 1]} lineWidth={1} />
       </mesh>
+      {isMobile ? 
+      <>
       <Text 
-        fontSize={2.7} 
+        fontSize={2 * ScaleFactor} 
+        color="white" 
+        position={[0, 0.5, -1]}
+        font={fonts}
+      >
+        BEC 
+      </Text>
+      <Text 
+        fontSize={2 * ScaleFactor} 
+        color="white" 
+        position={[0, -0.5, -1]}
+        font={fonts}
+      >
+        IEEE
+      </Text> </>:
+      <Text 
+        fontSize={2 * ScaleFactor} 
         color="white" 
         position={[0, 0, -1]}
         font={fonts}
       >
         BEC IEEE
-      </Text>
+      </Text>}
     </>
   )
 }
