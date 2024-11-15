@@ -19,12 +19,9 @@ import {
 } from "@react-three/rapier";
 import { MeshLineGeometry, MeshLineMaterial } from "meshline";
 import fonts from "/fonts/HelveticaNeueBold.woff";
-import bandImg from "./assets/bandImg.png";
-import card3D from "./assets/card.glb"
+import CardModel from "./CardModel";
 
 extend({ MeshLineGeometry, MeshLineMaterial });
-useGLTF.preload(card3D);
-useTexture.preload(bandImg);
 
 export default function Card() {
   return (
@@ -39,6 +36,7 @@ export default function Card() {
       <Physics interpolate gravity={[0, -40, 0]} timeStep={1 / 60}>
         <Band />
       </Physics>
+
       <Environment background blur={0.75}>
         {/* <color attach="background" args={} /> */}
         <Lightformer
@@ -84,8 +82,7 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
     angularDamping: 2,
     linearDamping: 2,
   };
-  const { nodes, materials } = useGLTF(card3D);
-  const texture = useTexture(bandImg);
+  const texture = useTexture("./assets/bandImg.png");
   
   const { width, height } = useThree((state) => state.size);
   const [curve] = useState(
@@ -231,22 +228,7 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
               )
             )}
           >
-            <mesh ref={card} geometry={nodes.card.geometry}>
-              <meshPhysicalMaterial
-                map={materials.base.map}
-                map-anisotropy={16}
-                clearcoat={1}
-                clearcoatRoughness={0.15}
-                roughness={0.3}
-                metalness={0.5}
-              />
-            </mesh>
-            <mesh
-              geometry={nodes.clip.geometry}
-              material={materials.metal}
-              material-roughness={0.3}
-            />
-            <mesh geometry={nodes.clamp.geometry} material={materials.metal} />
+            <CardModel ref={card} />
           </group>
         </RigidBody>
       </group>
@@ -324,3 +306,5 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
     </>
   );
 }
+useGLTF.preload('./assets/card.glb');
+useTexture.preload("./assets/bandImg.png");
