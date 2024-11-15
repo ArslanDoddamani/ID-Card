@@ -7,7 +7,7 @@ const Home = () => {
       <div className="w-full h-screen">
         <Card />
       </div>
-      <div className="w-full h-screen">
+      <div className="w-full h-screen bg-slate-600">
       </div>
       <div className="w-full h-screen">
       </div>
