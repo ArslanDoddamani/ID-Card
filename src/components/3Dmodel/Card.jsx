@@ -178,6 +178,9 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
     }
   });
 
+  curve.curveType = 'chordal'
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping
+  
   return (
     <>
       <group position={[0, 4, 0]}>
@@ -234,15 +237,7 @@ function Band({ maxSpeed = 50, minSpeed = 10 }) {
       </group>
       <mesh ref={band}>
         <meshLineGeometry />
-        <meshLineMaterial
-          color="white"
-          depthTest={false}
-          resolution={[width, height]}
-          useMap
-          map={texture}
-          repeat={[-3, 1]}
-          lineWidth={1}
-        />
+        <meshLineMaterial color="white" depthTest={false} resolution={[width, height]} useMap map={texture} repeat={[-3, 1]} lineWidth={1} />
       </mesh>
       {isMobile ? (
         <group>
